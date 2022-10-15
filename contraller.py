@@ -13,7 +13,7 @@ def show_supplier(mysql):
             for fila in data:
                 listSupplierGet = {'idsupplier': fila[0], 'name': fila[1], 'nit': fila[2], 'address': fila[3], 'phone': fila[4], 'email': fila[5]}
                 listSupplier.append(listSupplierGet)
-            return jsonify({'listSupplier': listSupplier, 'messeger': "Cursos listado"})
+            return jsonify({'listSupplier': listSupplier, 'messeger': "List of suppliers"})
         else:
             return jsonify({'message: "There are no data'})
     except Exception as ex:
