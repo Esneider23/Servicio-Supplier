@@ -1,49 +1,51 @@
 # we invoke the necessary libraries
 from flask import jsonify, request
 
-
 # This function returns the supplier information
-def show_supplier(mysql):
+def show_supplier(connection):
     try:
-        cursor = mysql.connection.cursor()
-        cursor.execute("select idsupplier, name, nit, address, phone, email from supplier")
+        cursor = connection.cursor()
+        cursor.execute("SELECT idsupplier, name, nit, address, phone, email FROM supplier")
         data = cursor.fetchall()
-        if data != None:
+
+        if data:
             listSupplier = []
             for fila in data:
-                listSupplierGet = {'idsupplier': fila[0], 'name': fila[1], 'nit': fila[2], 'address': fila[3], 'phone': fila[4], 'email': fila[5]}
+                listSupplierGet = {
+                    'idsupplier': fila[0],
+                    'name': fila[1],
+                    'nit': fila[2],
+                    'address': fila[3],
+                    'phone': fila[4],
+                    'email': fila[5]
+                }
                 listSupplier.append(listSupplierGet)
-            return jsonify({'listSupplier': listSupplier, 'messeger': "List of suppliers"})
+            return jsonify({'listSupplier': listSupplier, 'message': "List of suppliers"})
         else:
-            return jsonify({'message: "There are no data'})
+            return jsonify({'message': "There are no data"})
     except Exception as ex:
-        return jsonify({'message: "Error'})
+        return jsonify({'message': "Error: " + str(ex)})
+ 
+# This function updates a data of a supplier
+def delete_supplier(connection, idSupplier):
+    try:
+        cursor = connection.cursor()
+        cursor.execute("DELETE FROM supplier WHERE idsupplier = %s", (idSupplier,))
+        connection.commit()
+        return show_supplier(connection)
+    except Exception as ex:
+        return jsonify({'message': "Error: " + str(ex)})
 
 
 # This function deletes a data from a supplier
-def delete_supplier(mysql, idSupplier):
+def update_supplier(connection, idSupplier, data):
     try:
-        cursor = mysql.connection.cursor()
-        cursor.execute("delete from supplier where idsupplier = (%s)", (idSupplier,))
-        data = cursor.fetchall()
-        print("Provider to be deleted: ", (data))
-        cursor.execute("select idsupplier, name, nit, address, phone, email from supplier where idsupplier = (%s)",
-                     (idSupplier,))
-        mysql.connection.commit()
-        return show_supplier(mysql)
+        cursor = connection.cursor()
+        cursor.execute(
+            "UPDATE supplier SET name = %s, nit = %s, address = %s, phone = %s, email = %s WHERE idsupplier = %s",
+            (data['name'], data['nit'], data['address'], data['phone'], data['email'], idSupplier)
+        )
+        connection.commit()
+        return show_supplier(connection)
     except Exception as ex:
-        return jsonify({'message: "Error'})
-
-
-# This function updates a data of a supplier
-def updateSupplier(mysql, idSupplier):
-    try:
-        cursor = mysql.connection.cursor()
-        cursor.execute("update supplier set name = '{0}', nit = '{1}', address = '{2}', phone = '{3}',"
-                       "email = '{4}' where idsupplier = '{5}'".format(request.json['name'], request.json['nit'],
-                                                                       request.json['address'], request.json['phone'],
-                                                                       request.json['email'], idSupplier))
-        mysql.connection.commit()
-        return show_supplier(mysql)
-    except Exception as ex:
-        return jsonify({'message: "Error'})
+        return jsonify({'message': "Error: " + str(ex)})

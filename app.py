@@ -1,50 +1,59 @@
 # we invoke the necessary libraries
-from flask import Flask, render_template, jsonify
-from flask_mysqldb import MySQL
+from flask import Flask, jsonify
+# from config import config
 from flask_cors import CORS, cross_origin
 import contraller
+from db import get_db_connection
 
 # The access point is created
 server = Flask(__name__)
 
-CORS(server)
 
-# The connection point to the base is created
-server.config['MYSQL_HOST'] = 'us-cdbr-east-06.cleardb.net'
-server.config['MYSQL_USER'] = 'bee0e9755133d2'
-server.config['MYSQL_PASSWORD'] = 'f3e9360a'
-server.config['MYSQL_DB'] = 'heroku_23edc9681868d22'
-mysql = MySQL(server)
+#this allow recurser exchange
+CORS(server)
 
 
 @cross_origin
 # The route to enter the service is created
 @server.get('/supplier')
 def index():
-    try:
-        return contraller.show_supplier(mysql)
-    except Exception as error:
-        return jsonify({"Message": error})
+    config = get_db_connection()
+    if config:
+        try:
+            return contraller.show_supplier(config)
+        except Exception as error:
+            return jsonify({"Message": error})
+    else:
+        return jsonify({'message': 'Error connecting to the database'})
 
-
-@cross_origin
+        
 # this route is created to remove data from this service
+@cross_origin
 @server.delete('/supplier/<id>')
 def supplier_delete(id):
     try:
-        return contraller.delete_supplier(mysql, id)
+        config = get_db_connection()
+        if config:
+            return contraller.delete_supplier(config, id)
+        else:
+            return jsonify({'message': 'Error connecting to the database'})
     except Exception as ex:
-        return page_not_found(ex)
+        return jsonify({'message': str(ex)})
 
 
-@cross_origin
 # this route is created to update data of this service
+@cross_origin
 @server.put('/supplier/<id>')
 def supplier_update(id):
     try:
-        return contraller.update_supplier(mysql, id)
+        config = get_db_connection()
+        if config:
+            return contraller.update_supplier(config, id)
+        else:
+            return jsonify({'message': 'Error connecting to the database'})
     except Exception as ex:
-        return page_not_found(ex)
+        return jsonify({'message': str(ex)})
+
 
 
 @cross_origin
